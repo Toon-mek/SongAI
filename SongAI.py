@@ -19,16 +19,23 @@ def download_data_from_drive():
 # Load the dataset of your CSV file
 data_df = download_data_from_drive()
 
-# Add a sidebar for filtering songs by category (e.g., 'Year' or 'Artist')
+# Display the original dataset in Streamlit
+st.write("Original Dataset:")
+st.write(data_df.head())
+
+# Add a sidebar for selecting a category and filtering songs
 st.sidebar.header('Filter Songs by Category')
 
-# Assuming the dataset has columns 'Year' and 'Artist' to filter by
-category_options = data_df['Year'].unique()  # Change 'Year' to the relevant column for filtering
-selected_category = st.sidebar.selectbox('Select Year', options=category_options)
+# Allow user to select which column to filter by
+filter_column = st.sidebar.selectbox('Select a Category to Filter By', options=['Artist', 'Album', 'Release Date', 'Song Title'])
+
+# Get unique values from the selected column to create filter options
+category_options = data_df[filter_column].dropna().unique()  # Drop any NaN values and get unique entries
+selected_category = st.sidebar.selectbox(f'Select {filter_column}', options=category_options)
 
 # Filter songs based on the selected category
-filtered_songs = data_df[data_df['Year'] == selected_category]
+filtered_songs = data_df[data_df[filter_column] == selected_category]
 
 # Display the filtered songs
-st.write(f"### Songs from {selected_category}:")
-st.write(filtered_songs[['Song Title', 'Artist', 'Year']])  # Display relevant columns
+st.write(f"### Songs Filtered by {filter_column}: {selected_category}")
+st.write(filtered_songs[['Song Title', 'Artist', 'Album', 'Release Date']])  # Display relevant columns
