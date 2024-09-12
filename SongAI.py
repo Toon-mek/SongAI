@@ -28,12 +28,12 @@ st.write(data_df)
 
 # Data preprocessing: Encoding categorical data and handling missing values
 label_encoder = LabelEncoder()
-all_songs_data['genre'] = label_encoder.fit_transform(all_songs_data['genre'])
-all_songs_data = all_songs_data.dropna()
+data_df['genre'] = label_encoder.fit_transform(data_df['genre'])
+data_df = data_df.dropna()
 
 # Split dataset into features and target variable
-X = all_songs_data.drop(['song_name', 'artist_name', 'youtube_url'], axis=1)  # Features
-y = all_songs_data['genre']  # Target variable
+X = data_df.drop(['song_name', 'artist_name', 'youtube_url'], axis=1)  # Features
+y = data_df['genre']  # Target variable
 
 # Split the dataset into training and testing sets
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
@@ -50,7 +50,7 @@ st.sidebar.header('Filter by Song Category')
 category = st.sidebar.selectbox('Select Category', options=label_encoder.classes_)
 
 # Filter songs based on selected category
-filtered_songs = all_songs_data[all_songs_data['genre'] == label_encoder.transform([category])[0]]
+filtered_songs = data_df[data_df['genre'] == label_encoder.transform([category])[0]]
 
 # Display the filtered songs with an option to play the video
 st.write(f"### Songs in {category} Category")
@@ -66,10 +66,8 @@ distances, indices = model_knn.kneighbors(sample_song)
 
 # Display recommended songs based on KNN model
 for idx in indices.flatten():
-    song_name = all_songs_data.iloc[idx]['song_name']
-    artist_name = all_songs_data.iloc[idx]['artist_name']
-    youtube_url = all_songs_data.iloc[idx]['youtube_url']
+    song_name = data_df.iloc[idx]['song_name']
+    artist_name = data_df.iloc[idx]['artist_name']
+    youtube_url = data_df.iloc[idx]['youtube_url']
     st.write(f"**{song_name}** by {artist_name}")
     st.video(youtube_url)
-
-# Note: Model evaluation and accuracy can be expanded as needed based on specific requirements or metrics.
