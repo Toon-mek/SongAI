@@ -25,11 +25,12 @@ def download_data_from_drive():
 data_df = download_data_from_drive()
 
 # Display the data in Streamlit
-st.write(data_df)
+st.write("Original Dataset:")
+st.write(data_df.head())
 
-# Add a new column for sentiment analysis of the lyrics
+# Function to analyze the emotion of the lyrics
 def analyze_lyrics_emotion(lyrics):
-    analysis = TextBlob(lyrics)
+    analysis = TextBlob(str(lyrics))  # Convert lyrics to string to handle any potential non-string entries
     polarity = analysis.sentiment.polarity
     if polarity > 0:
         return 'Positive'
@@ -38,20 +39,20 @@ def analyze_lyrics_emotion(lyrics):
     else:
         return 'Neutral'
 
-# Apply emotion analysis to the lyrics
+# Add a new column for sentiment analysis of the lyrics
 data_df['Emotion'] = data_df['Lyrics'].apply(analyze_lyrics_emotion)
 
-# Display the dataset with emotions
+# Display the dataset with the new 'Emotion' column
 st.write("Dataset with Emotion Analysis:")
 st.write(data_df[['Song Title', 'Artist', 'Lyrics', 'Emotion']])
 
 # Data preprocessing: Encoding categorical data and handling missing values
 label_encoder = LabelEncoder()
-data_df['genre'] = label_encoder.fit_transform(data_df['Year'])  # Changed column based on sample data
-data_df = data_df.dropna()
+data_df['genre'] = label_encoder.fit_transform(data_df['Year'].fillna('Unknown'))  # Encoding 'Year' for genre-like categorization
+data_df = data_df.dropna(subset=['Lyrics'])  # Drop rows where 'Lyrics' is missing
 
 # Split dataset into features and target variable
-X = data_df.drop(['Song Title', 'Artist', 'Lyrics', 'Album URL', 'Media', 'Song URL', 'Writers', 'Emotion'], axis=1)  # Features
+X = data_df.drop(['Song Title', 'Artist', 'Lyrics', 'Album URL', 'Media', 'Song URL', 'Writers', 'Emotion'], axis=1, errors='ignore')  # Features
 y = data_df['genre']  # Target variable
 
 # Split the dataset into training and testing sets
@@ -76,7 +77,7 @@ st.write(f"### Songs in {category} Category")
 for index, row in filtered_songs.iterrows():
     st.write(f"**{row['Song Title']}** by {row['Artist']}")
     st.write(f"**Emotion**: {row['Emotion']}")
-    if 'youtube' in str(row['Media']):
+    if pd.notna(row['Media']) and 'youtube' in str(row['Media']):
         for media in eval(row['Media']):
             if media['provider'] == 'youtube':
                 st.video(media['url'])
