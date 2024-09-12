@@ -55,8 +55,12 @@ if selected_genre != 'Select a genre':
     # Filter songs based on the selected genre
     filtered_songs = data_df[data_df['Predicted Genre'] == selected_genre]
 
-    # Display the filtered songs
-    st.write(f"### Playlist: {selected_genre}")
-    st.write(filtered_songs[['Song Title', 'Artist', 'Album', 'Release Date', 'Predicted Genre']])  # Display relevant columns
+    # Sort the filtered songs by 'Release Date' in descending order
+    filtered_songs['Release Date'] = pd.to_datetime(filtered_songs['Release Date'], errors='coerce')  # Convert to datetime
+    filtered_songs = filtered_songs.sort_values(by='Release Date', ascending=False)
+
+    # Display only the required columns
+    st.write(f"### Songs Filtered by Genre: {selected_genre}")
+    st.write(filtered_songs[['Song Title', 'Artist', 'Album', 'Lyrics', 'Release Date']])
 else:
     st.write("Please select a genre to display the songs.")
