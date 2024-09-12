@@ -1,9 +1,7 @@
-import streamlit as st
+# Import necessary libraries
 import pandas as pd
+import streamlit as st
 import gdown
-from transformers import pipeline
-from sklearn.metrics.pairwise import cosine_similarity
-from sklearn.feature_extraction.text import TfidfVectorizer
 
 # Function to download the CSV from Google Drive
 @st.cache_data
@@ -39,48 +37,30 @@ def predict_genre(row):
             return genre
     return 'Unknown'  # Default if no keywords are matched
 
-def load_emotion_model():
-    return pipeline("text-classification", model="j-hartmann/emotion-english-distilroberta-base", return_all_scores=True)
+# Apply the genre prediction to each row in the dataset
+data_df['Predicted Genre'] = data_df.apply(predict_genre, axis=1)
 
-def detect_emotions(lyrics, emotion_model):
-    # Truncate lyrics to a maximum length (e.g., 512 tokens)
-    max_length = 512
-    truncated_lyrics = ' '.join(lyrics.split()[:max_length])
-    emotions = emotion_model(truncated_lyrics)
-    return emotions
-    
-@st.cache_data
-def compute_similarity(df, song_lyrics):
-    df['Lyrics'] = df['Lyrics'].fillna('').astype(str)
-    vectorizer = TfidfVectorizer(stop_words='english')
-    tfidf_matrix = vectorizer.fit_transform(df['Lyrics'])
-    song_tfidf = vectorizer.transform([song_lyrics])
-    similarity_scores = cosine_similarity(song_tfidf, tfidf_matrix)
-    return similarity_scores.flatten()
+# Add a sidebar for filtering songs by predicted genre
+st.sidebar.header('Filter Songs by Predicted Genre')
 
-def recommend_songs(df, selected_song, top_n=5):
-    song_data = df[df['Song Title'] == selected_song]
-    if song_data.empty:
-        st.write("Song not found.")
-        return []
-    song_lyrics = song_data['Lyrics'].values[0]
-    song_genre = song_data['Predicted Genre'].values[0]
-    
-    emotion_model = load_emotion_model()
-    song_emotion = detect_emotions(song_lyrics, emotion_model)
-    
-    similarity_scores = compute_similarity(df, song_lyrics)
-    
-    df['similarity'] = similarity_scores
-    recommended_songs = df[(df['Predicted Genre'] == song_genre)].sort_values(by='similarity', ascending=False).head(top_n)
-        # Sort the filtered songs by 'Release Date' in descending order
+# Get unique genres from the predicted genres column for the dropdown
+unique_genres = data_df['Predicted Genre'].unique()
+unique_genres = [genre for genre in unique_genres if genre != 'Unknown']  # Exclude 'Unknown' if desired
+
+# Dropdown selection for genres
+selected_genre = st.sidebar.selectbox('Select a Genre', options=['Select a genre'] + unique_genres)
+
+# Check if a valid genre is selected
+if selected_genre != 'Select a genre':
+    # Filter songs based on the selected genre
+    filtered_songs = data_df[data_df['Predicted Genre'] == selected_genre]
+
+    # Sort the filtered songs by 'Release Date' in descending order
     filtered_songs['Release Date'] = pd.to_datetime(filtered_songs['Release Date'], errors='coerce')  # Convert to datetime
     filtered_songs = filtered_songs.sort_values(by='Release Date', ascending=False).reset_index(drop=True)
 
-def main():
-
     # Display each song in a banner format with an expander to show/hide lyrics
-    st.write(f"### Playlist: {selected_genre}")
+    st.write(f"### Songs Filtered by Genre: {selected_genre}")
     for idx, row in filtered_songs.iterrows():
         with st.container():
             # Combine the song number and title into a single line
@@ -93,6 +73,5 @@ def main():
             with st.expander("Show/Hide Lyrics"):
                 st.write(row['Lyrics'].strip())  # Clean up the lyrics display
             st.markdown("---")  # Separator between songs
-
-if _name_ == '_main_':
-    main()
+else:
+    st.write("Please select a genre to display the songs.")
