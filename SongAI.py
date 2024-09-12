@@ -57,10 +57,17 @@ if selected_genre != 'Select a genre':
 
     # Sort the filtered songs by 'Release Date' in descending order
     filtered_songs['Release Date'] = pd.to_datetime(filtered_songs['Release Date'], errors='coerce')  # Convert to datetime
-    filtered_songs = filtered_songs.sort_values(by='Release Date', ascending=False)
+    filtered_songs = filtered_songs.sort_values(by='Release Date', ascending=False).reset_index(drop=True)
 
-    # Display only the required columns
+    # Display each song in a detailed format starting from No. 1
     st.write(f"### Songs Filtered by Genre: {selected_genre}")
-    st.write(filtered_songs[['Song Title', 'Artist', 'Album', 'Lyrics', 'Release Date']])
+    for idx, row in filtered_songs.iterrows():
+        st.write(f"**No. {idx + 1}**")
+        st.write(f"**Song Title:** {row['Song Title']}")
+        st.write(f"**Artist:** {row['Artist']}")
+        st.write(f"**Album:** {row['Album']}")
+        st.write(f"**Release Date:** {row['Release Date'].strftime('%Y-%m-%d') if pd.notna(row['Release Date']) else 'Unknown'}")
+        st.write(f"**Lyrics:** {row['Lyrics']}")
+        st.write("---")  # Separator between songs
 else:
     st.write("Please select a genre to display the songs.")
