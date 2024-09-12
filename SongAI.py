@@ -80,29 +80,6 @@ def main():
     data_df = download_data_from_drive()
     data_df['Predicted Genre'] = data_df.apply(predict_genre, axis=1)
     
-    # Sidebar for genre selection
-    st.sidebar.header('Filter Songs by Predicted Genre')
-    unique_genres = data_df['Predicted Genre'].unique()
-    unique_genres = [genre for genre in unique_genres if genre != 'Unknown']
-    selected_genre = st.sidebar.selectbox('Select a Genre', options=['Select a genre'] + unique_genres)
-    
-    # Display songs filtered by selected genre
-    if selected_genre != 'Select a genre':
-        filtered_songs = data_df[data_df['Predicted Genre'] == selected_genre]
-        filtered_songs['Release Date'] = pd.to_datetime(filtered_songs['Release Date'], errors='coerce')
-        filtered_songs = filtered_songs.sort_values(by='Release Date', ascending=False).reset_index(drop=True)
-
-        st.write(f"### Songs Filtered by Genre: {selected_genre}")
-        for idx, row in filtered_songs.iterrows():
-            with st.container():
-                st.markdown(f"**No. {idx + 1}: {row['Song Title']}**")
-                st.markdown(f"**Artist:** {row['Artist']}")
-                st.markdown(f"**Album:** {row['Album']}")
-                st.markdown(f"**Release Date:** {row['Release Date'].strftime('%Y-%m-%d') if pd.notna(row['Release Date']) else 'Unknown'}")
-                with st.expander("Show/Hide Lyrics"):
-                    st.write(row['Lyrics'].strip())
-                st.markdown("---")
-    
     # Select a song for recommendations
     st.write("### Recommend Songs Similar to a Selected Song")
     song_list = data_df['Song Title'].unique()
