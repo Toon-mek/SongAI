@@ -59,19 +59,19 @@ if selected_genre != 'Select a genre':
     filtered_songs['Release Date'] = pd.to_datetime(filtered_songs['Release Date'], errors='coerce')  # Convert to datetime
     filtered_songs = filtered_songs.sort_values(by='Release Date', ascending=False).reset_index(drop=True)
 
-    # Display each song in a banner format with a button to show lyrics
+    # Display each song in a banner format with an expander to show/hide lyrics
     st.write(f"### Songs Filtered by Genre: {selected_genre}")
     for idx, row in filtered_songs.iterrows():
         with st.container():
-            st.write(f"**No. {idx + 1}**")
-            st.write(f"**Song Title:** {row['Song Title']}")
-            st.write(f"**Artist:** {row['Artist']}")
-            st.write(f"**Album:** {row['Album']}")
+            st.markdown(f"**No. {idx + 1}**")
+            st.markdown(f"**Song Title:** {row['Song Title']}")
+            st.markdown(f"**Artist:** {row['Artist']}")
+            st.markdown(f"**Album:** {row['Album']}")
+            st.markdown(f"**Release Date:** {row['Release Date'].strftime('%Y-%m-%d') if pd.notna(row['Release Date']) else 'Unknown'}")
             
-            # Create a button to show/hide lyrics
-            show_lyrics = st.button(f"Show Lyrics for '{row['Song Title']}'", key=f"button_{idx}")
-            if show_lyrics:
-                st.write(f"**Lyrics:** {row['Lyrics']}")
-            st.write("---")  # Separator between songs
+            # Use expander to show/hide lyrics
+            with st.expander("Show/Hide Lyrics"):
+                st.write(row['Lyrics'].strip())  # Clean up the lyrics display
+            st.markdown("---")  # Separator between songs
 else:
     st.write("Please select a genre to display the songs.")
