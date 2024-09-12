@@ -29,13 +29,14 @@ st.sidebar.header('Filter Songs by Category')
 # Allow user to select which column to filter by
 filter_column = st.sidebar.selectbox('Select a Category to Filter By', options=['Artist', 'Album', 'Release Date', 'Song Title'])
 
-# Get unique values from the selected column to create filter options
-category_options = data_df[filter_column].dropna().unique()  # Drop any NaN values and get unique entries
-selected_category = st.sidebar.selectbox(f'Select {filter_column}', options=category_options)
+# User input for filtering
+filter_value = st.sidebar.text_input(f'Enter value for {filter_column}')
 
-# Filter songs based on the selected category
-filtered_songs = data_df[data_df[filter_column] == selected_category]
-
-# Display the filtered songs
-st.write(f"### Songs Filtered by {filter_column}: {selected_category}")
-st.write(filtered_songs[['Song Title', 'Artist', 'Album', 'Release Date']])  # Display relevant columns
+# Filter songs based on the user input
+if filter_value:
+    filtered_songs = data_df[data_df[filter_column].str.contains(filter_value, case=False, na=False)]
+    # Display the filtered songs
+    st.write(f"### Songs Filtered by {filter_column} containing: {filter_value}")
+    st.write(filtered_songs[['Song Title', 'Artist', 'Album', 'Release Date']])  # Display relevant columns
+else:
+    st.write("Please enter a value to filter the songs.")
