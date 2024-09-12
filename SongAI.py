@@ -19,10 +19,6 @@ def download_data_from_drive():
 # Load the dataset of your CSV file
 data_df = download_data_from_drive()
 
-# Display the original dataset in Streamlit
-st.write("Original Dataset:")
-st.write(data_df.head())
-
 # Define a dictionary with genre keywords
 genre_keywords = {
     'Rock': ['rock', 'guitar', 'band', 'drums'],
@@ -44,10 +40,6 @@ def predict_genre(row):
 # Apply the genre prediction to each row in the dataset
 data_df['Predicted Genre'] = data_df.apply(predict_genre, axis=1)
 
-# Display the dataset with predicted genres
-st.write("Dataset with Predicted Genres:")
-st.write(data_df[['Song Title', 'Artist', 'Predicted Genre']])
-
 # Add a sidebar for filtering songs by predicted genre
 st.sidebar.header('Filter Songs by Predicted Genre')
 
@@ -56,11 +48,15 @@ unique_genres = data_df['Predicted Genre'].unique()
 unique_genres = [genre for genre in unique_genres if genre != 'Unknown']  # Exclude 'Unknown' if desired
 
 # Dropdown selection for genres
-selected_genre = st.sidebar.selectbox('Select a Genre', options=unique_genres)
+selected_genre = st.sidebar.selectbox('Select a Genre', options=['Select a genre'] + unique_genres)
 
-# Filter songs based on the selected genre
-filtered_songs = data_df[data_df['Predicted Genre'] == selected_genre]
+# Check if a valid genre is selected
+if selected_genre != 'Select a genre':
+    # Filter songs based on the selected genre
+    filtered_songs = data_df[data_df['Predicted Genre'] == selected_genre]
 
-# Display the filtered songs
-st.write(f"### Songs Filtered by Genre: {selected_genre}")
-st.write(filtered_songs[['Song Title', 'Artist', 'Album', 'Release Date', 'Predicted Genre']])  # Display relevant columns
+    # Display the filtered songs
+    st.write(f"### Songs Filtered by Genre: {selected_genre}")
+    st.write(filtered_songs[['Song Title', 'Artist', 'Album', 'Release Date', 'Predicted Genre']])  # Display relevant columns
+else:
+    st.write("Please select a genre to display the songs.")
