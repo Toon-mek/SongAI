@@ -51,14 +51,16 @@ st.write(data_df[['Song Title', 'Artist', 'Predicted Genre']])
 # Add a sidebar for filtering songs by predicted genre
 st.sidebar.header('Filter Songs by Predicted Genre')
 
-# User input for filtering genres
-genre_input = st.sidebar.text_input('Enter genre keyword (e.g., Rock, Pop, Jazz)')
+# Get unique genres from the predicted genres column for the dropdown
+unique_genres = data_df['Predicted Genre'].unique()
+unique_genres = [genre for genre in unique_genres if genre != 'Unknown']  # Exclude 'Unknown' if desired
 
-# Filter songs based on the predicted genre using user input
-if genre_input:
-    filtered_songs = data_df[data_df['Predicted Genre'].str.contains(genre_input, case=False, na=False)]
-    # Display the filtered songs
-    st.write(f"### Songs Filtered by Genre containing: {genre_input}")
-    st.write(filtered_songs[['Song Title', 'Artist', 'Album', 'Release Date', 'Predicted Genre']])  # Display relevant columns
-else:
-    st.write("Please enter a genre keyword to filter the songs.")
+# Dropdown selection for genres
+selected_genre = st.sidebar.selectbox('Select a Genre', options=unique_genres)
+
+# Filter songs based on the selected genre
+filtered_songs = data_df[data_df['Predicted Genre'] == selected_genre]
+
+# Display the filtered songs
+st.write(f"### Songs Filtered by Genre: {selected_genre}")
+st.write(filtered_songs[['Song Title', 'Artist', 'Album', 'Release Date', 'Predicted Genre']])  # Display relevant columns
