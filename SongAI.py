@@ -56,7 +56,7 @@ if selected_genre != 'Select a genre':
     filtered_songs = data_df[data_df['Predicted Genre'] == selected_genre]
 
     # Display the filtered songs
-    st.write(f"### Songs Filtered by Genre: {selected_genre}")
+    st.write(f"### Playlist: {selected_genre}")
     st.write(filtered_songs[['Song Title', 'Artist', 'Album', 'Release Date', 'Predicted Genre']])  # Display relevant columns
 else:
     st.write("Please select a genre to display the songs.")
