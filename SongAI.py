@@ -63,8 +63,8 @@ if selected_genre != 'Select a genre':
     st.write(f"### Songs Filtered by Genre: {selected_genre}")
     for idx, row in filtered_songs.iterrows():
         with st.container():
-            st.markdown(f"**No. {idx + 1}**")
-            st.markdown(f"**Song Title:** {row['Song Title']}")
+            # Combine the song number and title into a single line
+            st.markdown(f"**No. {idx + 1}: {row['Song Title']}**")
             st.markdown(f"**Artist:** {row['Artist']}")
             st.markdown(f"**Album:** {row['Album']}")
             st.markdown(f"**Release Date:** {row['Release Date'].strftime('%Y-%m-%d') if pd.notna(row['Release Date']) else 'Unknown'}")
