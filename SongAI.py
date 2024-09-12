@@ -6,6 +6,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.neighbors import NearestNeighbors
 from sklearn.preprocessing import LabelEncoder
 import numpy as np
+from textblob import TextBlob
 
 # Function to download the CSV from Google Drive
 @st.cache_data
@@ -26,13 +27,31 @@ data_df = download_data_from_drive()
 # Display the data in Streamlit
 st.write(data_df)
 
+# Add a new column for sentiment analysis of the lyrics
+def analyze_lyrics_emotion(lyrics):
+    analysis = TextBlob(lyrics)
+    polarity = analysis.sentiment.polarity
+    if polarity > 0:
+        return 'Positive'
+    elif polarity < 0:
+        return 'Negative'
+    else:
+        return 'Neutral'
+
+# Apply emotion analysis to the lyrics
+data_df['Emotion'] = data_df['Lyrics'].apply(analyze_lyrics_emotion)
+
+# Display the dataset with emotions
+st.write("Dataset with Emotion Analysis:")
+st.write(data_df[['Song Title', 'Artist', 'Lyrics', 'Emotion']])
+
 # Data preprocessing: Encoding categorical data and handling missing values
 label_encoder = LabelEncoder()
-data_df['genre'] = label_encoder.fit_transform(data_df['genre'])
+data_df['genre'] = label_encoder.fit_transform(data_df['Year'])  # Changed column based on sample data
 data_df = data_df.dropna()
 
 # Split dataset into features and target variable
-X = data_df.drop(['song_name', 'artist_name', 'youtube_url'], axis=1)  # Features
+X = data_df.drop(['Song Title', 'Artist', 'Lyrics', 'Album URL', 'Media', 'Song URL', 'Writers', 'Emotion'], axis=1)  # Features
 y = data_df['genre']  # Target variable
 
 # Split the dataset into training and testing sets
@@ -43,7 +62,7 @@ model_knn = NearestNeighbors(n_neighbors=5, algorithm='auto')
 model_knn.fit(X_train)
 
 # Streamlit application
-st.title("Song Recommendation System")
+st.title("Song Recommendation System with Emotion Analysis")
 
 # Sidebar for filtering songs by category
 st.sidebar.header('Filter by Song Category')
@@ -55,8 +74,12 @@ filtered_songs = data_df[data_df['genre'] == label_encoder.transform([category])
 # Display the filtered songs with an option to play the video
 st.write(f"### Songs in {category} Category")
 for index, row in filtered_songs.iterrows():
-    st.write(f"**{row['song_name']}** by {row['artist_name']}")
-    st.video(row['youtube_url'])
+    st.write(f"**{row['Song Title']}** by {row['Artist']}")
+    st.write(f"**Emotion**: {row['Emotion']}")
+    if 'youtube' in str(row['Media']):
+        for media in eval(row['Media']):
+            if media['provider'] == 'youtube':
+                st.video(media['url'])
 
 # Provide a sample recommendation when a song is selected
 st.write("## Sample Recommendations")
@@ -66,8 +89,8 @@ distances, indices = model_knn.kneighbors(sample_song)
 
 # Display recommended songs based on KNN model
 for idx in indices.flatten():
-    song_name = data_df.iloc[idx]['song_name']
-    artist_name = data_df.iloc[idx]['artist_name']
-    youtube_url = data_df.iloc[idx]['youtube_url']
+    song_name = data_df.iloc[idx]['Song Title']
+    artist_name = data_df.iloc[idx]['Artist']
+    youtube_url = [media['url'] for media in eval(data_df.iloc[idx]['Media']) if media['provider'] == 'youtube'][0]
     st.write(f"**{song_name}** by {artist_name}")
     st.video(youtube_url)
