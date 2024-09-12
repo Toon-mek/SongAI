@@ -3,3 +3,4 @@ streamlit
 gdown
 scikit-learn
 numpy
+textblob
