@@ -1,6 +1,6 @@
-pandas
 streamlit
-gdown
+pandas
+transformers
 scikit-learn
-numpy
-textblob
+gdown
+torch
