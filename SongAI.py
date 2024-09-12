@@ -77,6 +77,8 @@ def recommend_songs(df, selected_song, top_n=5):
     filtered_songs['Release Date'] = pd.to_datetime(filtered_songs['Release Date'], errors='coerce')  # Convert to datetime
     filtered_songs = filtered_songs.sort_values(by='Release Date', ascending=False).reset_index(drop=True)
 
+def main():
+
     # Display each song in a banner format with an expander to show/hide lyrics
     st.write(f"### Playlist: {selected_genre}")
     for idx, row in filtered_songs.iterrows():
@@ -91,5 +93,6 @@ def recommend_songs(df, selected_song, top_n=5):
             with st.expander("Show/Hide Lyrics"):
                 st.write(row['Lyrics'].strip())  # Clean up the lyrics display
             st.markdown("---")  # Separator between songs
-else:
-    st.write("Please select a genre to display the songs.")
+
+if _name_ == '_main_':
+    main()
