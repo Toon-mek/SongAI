@@ -23,20 +23,42 @@ data_df = download_data_from_drive()
 st.write("Original Dataset:")
 st.write(data_df.head())
 
-# Add a sidebar for selecting a category and filtering songs
-st.sidebar.header('Filter Songs by Category')
+# Define a dictionary with genre keywords
+genre_keywords = {
+    'Rock': ['rock', 'guitar', 'band', 'drums'],
+    'Pop': ['love', 'dance', 'hit', 'baby'],
+    'Jazz': ['jazz', 'swing', 'blues', 'saxophone'],
+    'Country': ['country', 'truck', 'road', 'cowboy'],
+    'Hip Hop': ['rap', 'hip', 'hop', 'beat', 'flow'],
+    'Classical': ['symphony', 'orchestra', 'classical', 'concerto']
+}
 
-# Allow user to select which column to filter by
-filter_column = st.sidebar.selectbox('Select a Category to Filter By', options=['Artist', 'Album', 'Release Date', 'Song Title'])
+# Function to predict genre based on keywords in song title or lyrics
+def predict_genre(row):
+    for genre, keywords in genre_keywords.items():
+        text = f"{row['Song Title']} {row['Lyrics']}"  # Combine relevant text fields
+        if any(keyword.lower() in str(text).lower() for keyword in keywords):
+            return genre
+    return 'Unknown'  # Default if no keywords are matched
 
-# User input for filtering
-filter_value = st.sidebar.text_input(f'Enter value for {filter_column}')
+# Apply the genre prediction to each row in the dataset
+data_df['Predicted Genre'] = data_df.apply(predict_genre, axis=1)
 
-# Filter songs based on the user input
-if filter_value:
-    filtered_songs = data_df[data_df[filter_column].str.contains(filter_value, case=False, na=False)]
+# Display the dataset with predicted genres
+st.write("Dataset with Predicted Genres:")
+st.write(data_df[['Song Title', 'Artist', 'Predicted Genre']])
+
+# Add a sidebar for filtering songs by predicted genre
+st.sidebar.header('Filter Songs by Predicted Genre')
+
+# User input for filtering genres
+genre_input = st.sidebar.text_input('Enter genre keyword (e.g., Rock, Pop, Jazz)')
+
+# Filter songs based on the predicted genre using user input
+if genre_input:
+    filtered_songs = data_df[data_df['Predicted Genre'].str.contains(genre_input, case=False, na=False)]
     # Display the filtered songs
-    st.write(f"### Songs Filtered by {filter_column} containing: {filter_value}")
-    st.write(filtered_songs[['Song Title', 'Artist', 'Album', 'Release Date']])  # Display relevant columns
+    st.write(f"### Songs Filtered by Genre containing: {genre_input}")
+    st.write(filtered_songs[['Song Title', 'Artist', 'Album', 'Release Date', 'Predicted Genre']])  # Display relevant columns
 else:
-    st.write("Please enter a value to filter the songs.")
+    st.write("Please enter a genre keyword to filter the songs.")
