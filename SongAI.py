@@ -19,10 +19,6 @@ def download_data_from_drive():
 # Load the dataset of your CSV file
 data_df = download_data_from_drive()
 
-# Display the original dataset in Streamlit
-st.write("Original Dataset:")
-st.write(data_df.head())
-
 # Add a sidebar for filtering songs by category (e.g., 'Year' or 'Artist')
 st.sidebar.header('Filter Songs by Category')
 
