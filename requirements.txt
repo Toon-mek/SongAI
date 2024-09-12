@@ -4,4 +4,3 @@ transformers
 scikit-learn
 gdown
 torch
-pipeline
