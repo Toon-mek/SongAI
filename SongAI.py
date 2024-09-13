@@ -76,12 +76,16 @@ def recommend_songs(df, selected_song, top_n=5):
     return recommended_songs[['Song Title', 'Artist', 'Album', 'Release Date', 'similarity', 'Song URL']]
 
 # Main function for the Streamlit app
+# Main function for the Streamlit app
 def main():
     st.title("Song Recommender System Based on Lyrics Emotion and Similarity")
     df = download_data_from_drive()
 
     # Drop duplicate entries based on 'Song Title', 'Artist', 'Album', and 'Release Date'
     df = df.drop_duplicates(subset=['Song Title', 'Artist', 'Album', 'Release Date'], keep='first')
+
+    # Predict genre after removing duplicates
+    df['Predicted Genre'] = df.apply(predict_genre, axis=1)
 
     # Convert the 'Release Date' column to datetime if possible
     df['Release Date'] = pd.to_datetime(df['Release Date'], errors='coerce')
@@ -107,13 +111,13 @@ def main():
                     st.markdown(f"<h2 style='font-weight: bold;'> {idx + 1}. {row['Song Title']}</h2>", unsafe_allow_html=True)
                     st.markdown(f"**Artist:** {row['Artist']}")
                     st.markdown(f"**Album:** {row['Album']}")
-                    
+
                     # Check if 'Release Date' is a datetime object before formatting
                     if pd.notna(row['Release Date']):
                         st.markdown(f"**Release Date:** {row['Release Date'].strftime('%Y-%m-%d')}")
                     else:
                         st.markdown(f"**Release Date:** Unknown")
-                    
+
                     # Display link to Genius.com page if URL is available
                     song_url = row.get('Song URL', '')
                     if pd.notna(song_url) and song_url:
@@ -136,29 +140,34 @@ def main():
             if st.button("Recommend Similar Songs"):
                 recommendations = recommend_songs(df, selected_song)
                 st.write(f"### Recommended Songs Similar to {selected_song}")
+                
+                # Display the recommended songs in the same format as the search results
                 for idx, row in recommendations.iterrows():
-                    st.markdown(f"**No. {idx + 1}: {row['Song Title']}**")
-                    st.markdown(f"**Artist:** {row['Artist']}")
-                    st.markdown(f"**Album:** {row['Album']}")
-                    
-                    # Check if 'Release Date' is a datetime object before formatting
-                    if pd.notna(row['Release Date']):
-                        st.markdown(f"**Release Date:** {row['Release Date'].strftime('%Y-%m-%d')}")
-                    else:
-                        st.markdown(f"**Release Date:** Unknown")
-                    
-                    st.markdown(f"**Similarity Score:** {row['similarity']:.2f}")
-                    
-                    # Extract and display YouTube video if URL is available
-                    youtube_url = extract_youtube_url(row.get('Media', ''))
-                    if youtube_url:
-                        video_id = youtube_url.split('watch?v=')[-1]
-                        st.markdown(f"<iframe width='400' height='315' src='https://www.youtube.com/embed/{video_id}' frameborder='0' allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share' referrerpolicy='strict-origin-when-cross-origin' allowfullscreen></iframe>", unsafe_allow_html=True)
+                    with st.container():
+                        st.markdown(f"<h2 style='font-weight: bold;'> {idx + 1}. {row['Song Title']}</h2>", unsafe_allow_html=True)
+                        st.markdown(f"**Artist:** {row['Artist']}")
+                        st.markdown(f"**Album:** {row['Album']}")
+                        
+                        # Check if 'Release Date' is a datetime object before formatting
+                        if pd.notna(row['Release Date']):
+                            st.markdown(f"**Release Date:** {row['Release Date'].strftime('%Y-%m-%d')}")
+                        else:
+                            st.markdown(f"**Release Date:** Unknown")
+                        
+                        # Display link to Genius.com page if URL is available
+                        song_url = row.get('Song URL', '')
+                        if pd.notna(song_url) and song_url:
+                            st.markdown(f"[View Lyrics on Genius]({song_url})")
 
-                    st.markdown("---")
+                        # Extract and display YouTube video if URL is available
+                        youtube_url = extract_youtube_url(row.get('Media', ''))
+                        if youtube_url:
+                            video_id = youtube_url.split('watch?v=')[-1]
+                            st.markdown(f"<iframe width='400' height='315' src='https://www.youtube.com/embed/{video_id}' frameborder='0' allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share' referrerpolicy='strict-origin-when-cross-origin' allowfullscreen></iframe>", unsafe_allow_html=True)
 
+                        with st.expander("Show/Hide Lyrics"):
+                            formatted_lyrics = row['Lyrics'].strip().replace('\n', '\n\n')
+                            st.markdown(f"<pre style='white-space: pre-wrap; font-family: monospace;'>{formatted_lyrics}</pre>", unsafe_allow_html=True)
+                        st.markdown("---")
     else:
         st.write("Please enter a song name or artist to search.")
-
-if __name__ == '__main__':
-    main()
