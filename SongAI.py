@@ -83,11 +83,15 @@ def main():
     df = download_data_from_drive()
     df['Predicted Genre'] = df.apply(predict_genre, axis=1)
     
-    # Search bar for song name
-    search_term = st.text_input("Enter a Song Name").strip()
+    # Search bar for song name or artist
+    search_term = st.text_input("Enter a Song Name or Artist").strip()
 
     if search_term:
-        filtered_songs = df[df['Song Title'].str.contains(search_term, case=False, na=False)]
+        # Filter by song title or artist name
+        filtered_songs = df[
+            (df['Song Title'].str.contains(search_term, case=False, na=False)) |
+            (df['Artist'].str.contains(search_term, case=False, na=False))
+        ]
 
         filtered_songs['Release Date'] = pd.to_datetime(filtered_songs['Release Date'], errors='coerce')
         filtered_songs = filtered_songs.sort_values(by='Release Date', ascending=False).reset_index(drop=True)
@@ -142,7 +146,7 @@ def main():
                     st.markdown("---")
 
     else:
-        st.write("Please enter a song name to search.")
+        st.write("Please enter a song name or artist to search.")
 
 if __name__ == '__main__':
     main()
