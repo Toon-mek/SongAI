@@ -79,11 +79,6 @@ def recommend_songs(df, selected_song, top_n=5):
 def main():
     st.title("Song Recommender System Based on Lyrics Emotion and Genre")
     df = download_data_from_drive()
-
-    # Drop duplicate entries based on 'Song Title', 'Artist', 'Album', and 'Release Date'
-    df = df.drop_duplicates(subset=['Song Title', 'Artist', 'Album', 'Release Date'], keep='first')
-
-    # Predict genre after removing duplicates
     df['Predicted Genre'] = df.apply(predict_genre, axis=1)
     
     # Search bar for song name or artist
@@ -95,6 +90,9 @@ def main():
             (df['Song Title'].str.contains(search_term, case=False, na=False)) |
             (df['Artist'].str.contains(search_term, case=False, na=False))
         ]
+
+        # Remove duplicate rows based on Song Title and Artist
+        filtered_songs = filtered_songs.drop_duplicates(subset=['Song Title', 'Artist'])
 
         # Convert Release Date to datetime for sorting
         filtered_songs['Release Date'] = pd.to_datetime(filtered_songs['Release Date'], errors='coerce')
@@ -154,3 +152,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
