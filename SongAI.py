@@ -92,10 +92,11 @@ def main():
                     st.markdown(f"**Album:** {row['Album']}")
                     st.markdown(f"**Release Date:** {row['Release Date'].strftime('%Y-%m-%d') if pd.notna(row['Release Date']) else 'Unknown'}")
                     
-                    # Display YouTube video if URL is available
-                    youtube_url = row.get('YouTube URL', '')
-                    if pd.notna(youtube_url) and youtube_url:
-                        st.video(youtube_url)
+                    # Display link to Genius.com page if URL is available
+                    song_url = row.get('Song URL', '')
+                    if pd.notna(song_url) and song_url:
+                        st.markdown(f"[View Lyrics on Genius]({song_url})")
+
 
                     with st.expander("Show/Hide Lyrics"):
                         formatted_lyrics = row['Lyrics'].strip().replace('\n', '\n\n')
