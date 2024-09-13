@@ -56,7 +56,7 @@ def recommend_songs(df, selected_song, top_n=5):
         st.write("Song not found.")
         return []
     
-    song_lyrics = song_data['Lyrics'].values[0]
+    song_lyrics = song_data['Lyrics'].values[0] if 'Lyrics' in song_data.columns and pd.notna(song_data['Lyrics'].values[0]) else ""
 
     # Load emotion detection model
     emotion_model = load_emotion_model()
@@ -75,7 +75,6 @@ def recommend_songs(df, selected_song, top_n=5):
     
     return recommended_songs[['Song Title', 'Artist', 'Album', 'Release Date', 'similarity', 'Song URL']]
     
-# Main function for the Streamlit app
 # Main function for the Streamlit app
 def main():
     st.title("Song Recommender System Based on Lyrics Emotion and Similarity")
@@ -126,11 +125,6 @@ def main():
                         video_id = youtube_url.split('watch?v=')[-1]
                         st.markdown(f"<iframe width='400' height='315' src='https://www.youtube.com/embed/{video_id}' frameborder='0' allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share' referrerpolicy='strict-origin-when-cross-origin' allowfullscreen></iframe>", unsafe_allow_html=True)
 
-                    with st.expander("Show/Hide Lyrics"):
-                        formatted_lyrics = row['Lyrics'].strip().replace('\n', '\n\n')
-                        st.markdown(f"<pre style='white-space: pre-wrap; font-family: monospace;'>{formatted_lyrics}</pre>", unsafe_allow_html=True)
-                    st.markdown("---")
-
             song_list = filtered_songs['Song Title'].unique()
             selected_song = st.selectbox("Select a Song for Recommendations", song_list)
 
@@ -162,9 +156,6 @@ def main():
                             video_id = youtube_url.split('watch?v=')[-1]
                             st.markdown(f"<iframe width='400' height='315' src='https://www.youtube.com/embed/{video_id}' frameborder='0' allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share' referrerpolicy='strict-origin-when-cross-origin' allowfullscreen></iframe>", unsafe_allow_html=True)
             
-                        with st.expander("Show/Hide Lyrics"):
-                            formatted_lyrics = row[1]['Lyrics'].strip().replace('\n', '\n\n')
-                            st.markdown(f"<pre style='white-space: pre-wrap; font-family: monospace;'>{formatted_lyrics}</pre>", unsafe_allow_html=True)
                         st.markdown("---")
 
     else:
