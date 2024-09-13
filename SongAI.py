@@ -65,7 +65,7 @@ def recommend_songs(df, selected_song, top_n=5):
 
     df['similarity'] = similarity_scores
     recommended_songs = df[(df['Predicted Genre'] == song_genre)].sort_values(by='similarity', ascending=False).head(top_n)
-    return recommended_songs[['Song Title', 'Artist', 'Album', 'Release Date', 'Predicted Genre', 'similarity', 'YouTube URL']]
+    return recommended_songs[['Song Title', 'Artist', 'Album', 'Release Date', 'Predicted Genre', 'similarity', 'Audio URL']]
 
 def main():
     st.title("Song Recommender System Based on Lyrics Emotion and Genre")
@@ -92,11 +92,10 @@ def main():
                     st.markdown(f"**Album:** {row['Album']}")
                     st.markdown(f"**Release Date:** {row['Release Date'].strftime('%Y-%m-%d') if pd.notna(row['Release Date']) else 'Unknown'}")
                     
-                    # Display link to Genius.com page if URL is available
-                    song_url = row.get('Song URL', '')
-                    if pd.notna(song_url) and song_url:
-                        st.markdown(f"[View Lyrics on Genius]({song_url})")
-
+                    # Play song if Audio URL is available
+                    audio_url = row.get('Audio URL', '')
+                    if pd.notna(audio_url) and audio_url:
+                        st.audio(audio_url)
 
                     with st.expander("Show/Hide Lyrics"):
                         formatted_lyrics = row['Lyrics'].strip().replace('\n', '\n\n')
@@ -117,10 +116,10 @@ def main():
                     st.markdown(f"**Genre:** {row['Predicted Genre']}")
                     st.markdown(f"**Similarity Score:** {row['similarity']:.2f}")
                     
-                    # Display YouTube video if URL is available
-                    youtube_url = row.get('YouTube URL', '')
-                    if pd.notna(youtube_url) and youtube_url:
-                        st.video(youtube_url)
+                    # Play song if Audio URL is available
+                    audio_url = row.get('Audio URL', '')
+                    if pd.notna(audio_url) and audio_url:
+                        st.audio(audio_url)
                     
                     st.markdown("---")
     else:
