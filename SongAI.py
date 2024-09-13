@@ -84,9 +84,6 @@ def main():
     # Drop duplicate entries based on 'Song Title', 'Artist', 'Album', and 'Release Date'
     df = df.drop_duplicates(subset=['Song Title', 'Artist', 'Album', 'Release Date'], keep='first')
 
-    # Predict genre after removing duplicates
-    df['Predicted Genre'] = df.apply(predict_genre, axis=1)
-
     # Convert the 'Release Date' column to datetime if possible
     df['Release Date'] = pd.to_datetime(df['Release Date'], errors='coerce')
     
