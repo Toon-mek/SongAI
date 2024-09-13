@@ -171,3 +171,6 @@ def main():
                         st.markdown("---")
     else:
         st.write("Please enter a song name or artist to search.")
+        
+if __name__ == '__main__':
+    main()
