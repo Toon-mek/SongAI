@@ -50,6 +50,14 @@ def compute_similarity(df, song_lyrics):
     similarity_scores = cosine_similarity(song_tfidf, tfidf_matrix)
     return similarity_scores.flatten()
 
+def extract_youtube_id(url):
+    """Extract the YouTube video ID from a URL."""
+    if 'youtube.com/watch?v=' in url:
+        return url.split('watch?v=')[1].split('&')[0]
+    elif 'youtu.be/' in url:
+        return url.split('youtu.be/')[1].split('?')[0]
+    return None
+
 def recommend_songs(df, selected_song, top_n=5):
     song_data = df[df['Song Title'] == selected_song]
     if song_data.empty:
@@ -65,7 +73,7 @@ def recommend_songs(df, selected_song, top_n=5):
 
     df['similarity'] = similarity_scores
     recommended_songs = df[(df['Predicted Genre'] == song_genre)].sort_values(by='similarity', ascending=False).head(top_n)
-    return recommended_songs[['Song Title', 'Artist', 'Album', 'Release Date', 'Predicted Genre', 'similarity', 'Song URL']]
+    return recommended_songs[['Song Title', 'Artist', 'Album', 'Release Date', 'Predicted Genre', 'similarity', 'Song URL', 'YouTube URL']]
 
 def main():
     st.title("Song Recommender System Based on Lyrics Emotion and Genre")
@@ -97,6 +105,13 @@ def main():
                     if pd.notna(song_url) and song_url:
                         st.markdown(f"[View Lyrics on Genius]({song_url})")
 
+                    # Display YouTube video if URL is available
+                    youtube_url = row.get('YouTube URL', '')
+                    if pd.notna(youtube_url) and youtube_url:
+                        video_id = extract_youtube_id(youtube_url)
+                        if video_id:
+                            st.markdown(f"<iframe width='400' height='315' src='https://www.youtube.com/embed/{video_id}' frameborder='0' allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share' referrerpolicy='strict-origin-when-cross-origin' allowfullscreen></iframe>", unsafe_allow_html=True)
+
                     with st.expander("Show/Hide Lyrics"):
                         formatted_lyrics = row['Lyrics'].strip().replace('\n', '\n\n')
                         st.markdown(f"<pre style='white-space: pre-wrap; font-family: monospace;'>{formatted_lyrics}</pre>", unsafe_allow_html=True)
@@ -108,7 +123,22 @@ def main():
             if st.button("Recommend Similar Songs"):
                 recommendations = recommend_songs(df, selected_song)
                 st.write(f"### Recommended Songs Similar to {selected_song}")
-                st.write(recommendations)
+                for idx, row in recommendations.iterrows():
+                    st.markdown(f"**No. {idx + 1}: {row['Song Title']}**")
+                    st.markdown(f"**Artist:** {row['Artist']}")
+                    st.markdown(f"**Album:** {row['Album']}")
+                    st.markdown(f"**Release Date:** {row['Release Date'].strftime('%Y-%m-%d') if pd.notna(row['Release Date']) else 'Unknown'}")
+                    st.markdown(f"**Genre:** {row['Predicted Genre']}")
+                    st.markdown(f"**Similarity Score:** {row['similarity']:.2f}")
+                    
+                    # Display YouTube video if URL is available
+                    youtube_url = row.get('YouTube URL', '')
+                    if pd.notna(youtube_url) and youtube_url:
+                        video_id = extract_youtube_id(youtube_url)
+                        if video_id:
+                            st.markdown(f"<iframe width='400' height='315' src='https://www.youtube.com/embed/{video_id}' frameborder='0' allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share' referrerpolicy='strict-origin-when-cross-origin' allowfullscreen></iframe>", unsafe_allow_html=True)
+
+                    st.markdown("---")
 
     else:
         st.write("Please enter a song name to search.")
