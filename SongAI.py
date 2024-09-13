@@ -86,7 +86,7 @@ def main():
             for idx, row in filtered_songs.iterrows():
                 with st.container():
                     # Combine the song number and title into a single line
-                    st.markdown(f"**No. {idx + 1}: {row['Song Title']}**")
+                    st.markdown(f"<h2 style='font-weight: bold;'> {idx + 1}. {row['Song Title']}</h2>", unsafe_allow_html=True)
                     st.markdown(f"**Artist:** {row['Artist']}")
                     st.markdown(f"**Album:** {row['Album']}")
                     st.markdown(f"**Release Date:** {row['Release Date'].strftime('%Y-%m-%d') if pd.notna(row['Release Date']) else 'Unknown'}")
@@ -98,10 +98,11 @@ def main():
                     else:
                         st.markdown("Release Date: Unknown")
                     
-                    # Use expander to show/hide lyrics
-                    with st.expander("Show/Hide Lyrics"):
-                        st.write(row['Lyrics'].strip())
-                    st.markdown("---")
+                # Use expander to show/hide lyrics, arranged neatly
+                with st.expander("Show/Hide Lyrics"):
+                    formatted_lyrics = row['Lyrics'].strip().replace('\n', '\n\n')
+                    st.markdown(f"<pre style='white-space: pre-wrap; font-family: monospace;'>{formatted_lyrics}</pre>", unsafe_allow_html=True)
+                st.markdown("---")
 
             # Select a song for recommendation
             song_list = filtered_songs['Song Title'].unique()
