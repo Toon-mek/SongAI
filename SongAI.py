@@ -108,7 +108,17 @@ def main():
             if st.button("Recommend Similar Songs"):
                 recommendations = recommend_songs(df, selected_song)
                 st.write(f"### Recommended Songs Similar to {selected_song}")
-                st.write(recommendations)
+            for idx, row in filtered_songs.iterrows():
+                with st.container():
+                    st.markdown(f"<h2 style='font-weight: bold;'> {idx + 1}. {row['Song Title']}</h2>", unsafe_allow_html=True)
+                    st.markdown(f"**Artist:** {row['Artist']}")
+                    st.markdown(f"**Album:** {row['Album']}")
+                    st.markdown(f"**Release Date:** {row['Release Date'].strftime('%Y-%m-%d') if pd.notna(row['Release Date']) else 'Unknown'}")    
+
+                    with st.expander("Show/Hide Lyrics"):
+                    formatted_lyrics = row['Lyrics'].strip().replace('\n', '\n\n')
+                    st.markdown(f"<pre style='white-space: pre-wrap; font-family: monospace;'>{formatted_lyrics}</pre>", unsafe_allow_html=True)
+                st.markdown("---")
     else:
         st.write("Please enter a song name to search.")
 
