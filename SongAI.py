@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import gdown
+import ast  # For safely evaluating the Media string
 from transformers import pipeline
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -50,13 +51,15 @@ def compute_similarity(df, song_lyrics):
     similarity_scores = cosine_similarity(song_tfidf, tfidf_matrix)
     return similarity_scores.flatten()
 
-def extract_youtube_id(url):
-    """Extract the YouTube video ID from a URL."""
-    if 'youtube.com/watch?v=' in url:
-        return url.split('watch?v=')[1].split('&')[0]
-    elif 'youtu.be/' in url:
-        return url.split('youtu.be/')[1].split('?')[0]
-    return None
+def extract_youtube_url(media_str):
+    """Extract the YouTube URL from the Media field."""
+    try:
+        media_list = ast.literal_eval(media_str)  # Safely evaluate the string to a list
+        for media in media_list:
+            if media.get('provider') == 'youtube':
+                return media.get('url')
+    except (ValueError, SyntaxError):
+        return None
 
 def recommend_songs(df, selected_song, top_n=5):
     song_data = df[df['Song Title'] == selected_song]
@@ -73,7 +76,7 @@ def recommend_songs(df, selected_song, top_n=5):
 
     df['similarity'] = similarity_scores
     recommended_songs = df[(df['Predicted Genre'] == song_genre)].sort_values(by='similarity', ascending=False).head(top_n)
-    return recommended_songs[['Song Title', 'Artist', 'Album', 'Release Date', 'Predicted Genre', 'similarity', 'Song URL', 'YouTube URL']]
+    return recommended_songs[['Song Title', 'Artist', 'Album', 'Release Date', 'Predicted Genre', 'similarity', 'Song URL', 'Media']]
 
 def main():
     st.title("Song Recommender System Based on Lyrics Emotion and Genre")
@@ -105,12 +108,11 @@ def main():
                     if pd.notna(song_url) and song_url:
                         st.markdown(f"[View Lyrics on Genius]({song_url})")
 
-                    # Display YouTube video if URL is available
-                    youtube_url = row.get('YouTube URL', '')
-                    if pd.notna(youtube_url) and youtube_url:
-                        video_id = extract_youtube_id(youtube_url)
-                        if video_id:
-                            st.markdown(f"<iframe width='400' height='315' src='https://www.youtube.com/embed/{video_id}' frameborder='0' allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share' referrerpolicy='strict-origin-when-cross-origin' allowfullscreen></iframe>", unsafe_allow_html=True)
+                    # Extract and display YouTube video if URL is available
+                    youtube_url = extract_youtube_url(row.get('Media', ''))
+                    if youtube_url:
+                        video_id = youtube_url.split('watch?v=')[-1]
+                        st.markdown(f"<iframe width='400' height='315' src='https://www.youtube.com/embed/{video_id}' frameborder='0' allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share' referrerpolicy='strict-origin-when-cross-origin' allowfullscreen></iframe>", unsafe_allow_html=True)
 
                     with st.expander("Show/Hide Lyrics"):
                         formatted_lyrics = row['Lyrics'].strip().replace('\n', '\n\n')
@@ -131,12 +133,11 @@ def main():
                     st.markdown(f"**Genre:** {row['Predicted Genre']}")
                     st.markdown(f"**Similarity Score:** {row['similarity']:.2f}")
                     
-                    # Display YouTube video if URL is available
-                    youtube_url = row.get('YouTube URL', '')
-                    if pd.notna(youtube_url) and youtube_url:
-                        video_id = extract_youtube_id(youtube_url)
-                        if video_id:
-                            st.markdown(f"<iframe width='400' height='315' src='https://www.youtube.com/embed/{video_id}' frameborder='0' allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share' referrerpolicy='strict-origin-when-cross-origin' allowfullscreen></iframe>", unsafe_allow_html=True)
+                    # Extract and display YouTube video if URL is available
+                    youtube_url = extract_youtube_url(row.get('Media', ''))
+                    if youtube_url:
+                        video_id = youtube_url.split('watch?v=')[-1]
+                        st.markdown(f"<iframe width='400' height='315' src='https://www.youtube.com/embed/{video_id}' frameborder='0' allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share' referrerpolicy='strict-origin-when-cross-origin' allowfullscreen></iframe>", unsafe_allow_html=True)
 
                     st.markdown("---")
 
