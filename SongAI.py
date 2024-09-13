@@ -74,8 +74,7 @@ def recommend_songs(df, selected_song, top_n=5):
     recommended_songs = df.sort_values(by='similarity', ascending=False).head(top_n)
     
     return recommended_songs[['Song Title', 'Artist', 'Album', 'Release Date', 'similarity', 'Song URL']]
-
-# Main function for the Streamlit app
+    
 # Main function for the Streamlit app
 def main():
     st.title("Song Recommender System Based on Lyrics Emotion and Similarity")
@@ -139,33 +138,39 @@ def main():
                 st.write(f"### Recommended Songs Similar to {selected_song}")
                 
                 # Display the recommended songs in the same format as the search results
-                for idx, row in recommendations.iterrows():
+            if st.button("Recommend Similar Songs"):
+                recommendations = recommend_songs(df, selected_song)
+                st.write(f"### Recommended Songs Similar to {selected_song}")
+                
+                # Display the recommended songs in the same format as the search results
+                for idx, row in enumerate(recommendations.iterrows(), 1):
                     with st.container():
-                        st.markdown(f"<h2 style='font-weight: bold;'> {idx + 1}. {row['Song Title']}</h2>", unsafe_allow_html=True)
-                        st.markdown(f"**Artist:** {row['Artist']}")
-                        st.markdown(f"**Album:** {row['Album']}")
+                        st.markdown(f"<h2 style='font-weight: bold;'> {idx}. {row[1]['Song Title']}</h2>", unsafe_allow_html=True)
+                        st.markdown(f"**Artist:** {row[1]['Artist']}")
+                        st.markdown(f"**Album:** {row[1]['Album']}")
                         
                         # Check if 'Release Date' is a datetime object before formatting
-                        if pd.notna(row['Release Date']):
-                            st.markdown(f"**Release Date:** {row['Release Date'].strftime('%Y-%m-%d')}")
+                        if pd.notna(row[1]['Release Date']):
+                            st.markdown(f"**Release Date:** {row[1]['Release Date'].strftime('%Y-%m-%d')}")
                         else:
                             st.markdown(f"**Release Date:** Unknown")
                         
                         # Display link to Genius.com page if URL is available
-                        song_url = row.get('Song URL', '')
+                        song_url = row[1].get('Song URL', '')
                         if pd.notna(song_url) and song_url:
                             st.markdown(f"[View Lyrics on Genius]({song_url})")
-
+            
                         # Extract and display YouTube video if URL is available
-                        youtube_url = extract_youtube_url(row.get('Media', ''))
+                        youtube_url = extract_youtube_url(row[1].get('Media', ''))
                         if youtube_url:
                             video_id = youtube_url.split('watch?v=')[-1]
                             st.markdown(f"<iframe width='400' height='315' src='https://www.youtube.com/embed/{video_id}' frameborder='0' allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share' referrerpolicy='strict-origin-when-cross-origin' allowfullscreen></iframe>", unsafe_allow_html=True)
-
+            
                         with st.expander("Show/Hide Lyrics"):
-                            formatted_lyrics = row['Lyrics'].strip().replace('\n', '\n\n')
+                            formatted_lyrics = row[1]['Lyrics'].strip().replace('\n', '\n\n')
                             st.markdown(f"<pre style='white-space: pre-wrap; font-family: monospace;'>{formatted_lyrics}</pre>", unsafe_allow_html=True)
                         st.markdown("---")
+
     else:
         st.write("Please enter a song name or artist to search.")
         
