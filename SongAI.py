@@ -172,6 +172,14 @@ def main():
             selected_song = st.selectbox("Select a Song for Recommendations", song_list)
 
             if st.button("Recommend Similar Songs"):
+                # Filter by song title or artist name
+                filtered_songs = df[
+                    (df['Song Title'].str.contains(search_term, case=False, na=False)) |
+                    (df['Artist'].str.contains(search_term, case=False, na=False))
+                ]
+
+                filtered_songs = filtered_songs.sort_values(by='Release Date', ascending=False).reset_index(drop=True)
+
                 recommendations = recommend_songs(df, selected_song)
                 st.write(f"### Recommended Songs Similar to {selected_song}")
                 for idx, row in recommendations.iterrows():
@@ -199,4 +207,4 @@ def main():
         st.write("Please enter a song name or artist to search.")
 
 if __name__ == '__main__':
-    main()
+    main()
