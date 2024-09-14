@@ -174,6 +174,7 @@ def main():
             if st.button("Recommend Similar Songs"):
                 recommendations = recommend_songs(df, selected_song)
                 st.write(f"### Recommended Songs Similar to {selected_song}")
+                filtered_songs = filtered_songs.sort_values(by='Release Date', ascending=False).reset_index(drop=True)
                 for idx, row in recommendations.iterrows():
                     st.markdown(f"*No. {idx + 1}: {row['Song Title']}*")
                     st.markdown(f"*Artist:* {row['Artist']}")
