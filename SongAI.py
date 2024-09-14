@@ -55,7 +55,7 @@ def extract_youtube_url(media_str):
         return None
 
 # Recommend similar songs based on lyrics and detected emotions
-def recommend_songs(df, selected_song, top_n=5):
+def recommend_songs(df, selected_song, selected_emotion, top_n=5):
     song_data = df[df['Song Title'] == selected_song]
     if song_data.empty:
         st.write("Song not found.")
@@ -85,17 +85,31 @@ def recommend_songs(df, selected_song, top_n=5):
     else:
         st.write("No emotions detected.")
 
+    # Filter songs by the selected emotion
+    emotion_filtered_df = pd.DataFrame()  # Initialize empty DataFrame for filtering
+    for idx, row in df.iterrows():
+        detected_emotions = detect_emotions(row['Lyrics'], emotion_model, tokenizer)
+        if detected_emotions:
+            detected_emotion = max(detected_emotions[0], key=lambda x: x['score'])['label']
+            if detected_emotion.lower() == selected_emotion.lower():
+                emotion_filtered_df = emotion_filtered_df.append(row)
+
+    # Check if any songs match the selected emotion
+    if emotion_filtered_df.empty:
+        st.write(f"No songs found with the emotion: {selected_emotion}.")
+        return []
+
     # Compute lyrics similarity
-    similarity_scores = compute_similarity(df, song_lyrics)
+    similarity_scores = compute_similarity(emotion_filtered_df, song_lyrics)
 
     # Add similarity scores to the dataframe
-    df['similarity'] = similarity_scores
+    emotion_filtered_df['similarity'] = similarity_scores
 
     # Exclude the selected song from recommendations
-    df = df[df['Song Title'] != selected_song]
+    emotion_filtered_df = emotion_filtered_df[emotion_filtered_df['Song Title'] != selected_song]
 
     # Recommend top N similar songs
-    recommended_songs = df.sort_values(by='similarity', ascending=False).head(top_n)
+    recommended_songs = emotion_filtered_df.sort_values(by='similarity', ascending=False).head(top_n)
     
     return recommended_songs[['Song Title', 'Artist', 'Album', 'Release Date', 'similarity', 'Song URL', 'Media']]
 
@@ -163,6 +177,10 @@ def main():
     # Search bar for song name or artist
     search_term = st.text_input("Search for a Song or Artist 🎤").strip()
 
+    # Emotion selection dropdown
+    emotion_options = ['Happy', 'Sad', 'Anger', 'Fear']
+    selected_emotion = st.selectbox("Select an Emotion Category 🎭", emotion_options)
+
     if search_term:
         # Filter by song title or artist name
         filtered_songs = df[
@@ -205,8 +223,8 @@ def main():
             selected_song = st.selectbox("Select a Song for Recommendations 🎧", song_list)
 
             if st.button("Recommend Similar Songs"):
-                recommendations = recommend_songs(df, selected_song)
-                st.write(f"### Recommended Songs Similar to {selected_song}")
+                recommendations = recommend_songs(df, selected_song, selected_emotion)
+                st.write(f"### Recommended Songs Similar to {selected_song} with Emotion: {selected_emotion}")
                 
                 for idx, row in enumerate(recommendations.iterrows(), 1):
                     st.markdown(f"<h2 style='font-weight: bold;'> {idx}. {row[1]['Song Title']}</h2>", unsafe_allow_html=True)
@@ -232,3 +250,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
