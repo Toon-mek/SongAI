@@ -210,8 +210,7 @@ def main():
                     youtube_url = extract_youtube_url(row.get('Media', ''))
                     if youtube_url:
                         video_id = youtube_url.split('watch?v=')[-1]
-                        st.markdown(f"<iframe width='400' height='315' src='https://www.youtube.com/embed/{video_id}' frameborder='0' allow='accelerometer; autoplay; clipboard-write; encrypted-media; gy
-                        roscope; picture-in-picture; web-share' referrerpolicy='strict-origin-when-cross-origin' allowfullscreen></iframe>", unsafe_allow_html=True)
+                        st.markdown(f"<iframe width='400' height='315' src='https://www.youtube.com/embed/{video_id}' frameborder='0' allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share' referrerpolicy='strict-origin-when-cross-origin' allowfullscreen></iframe>", unsafe_allow_html=True)
 
                     with st.expander("Show/Hide Lyrics"):
                         formatted_lyrics = row['Lyrics'].strip().replace('\n', '\n\n')
