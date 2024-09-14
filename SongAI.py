@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import gdown
 import ast
-import random
 from transformers import pipeline, AutoTokenizer
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -24,11 +23,11 @@ def load_emotion_model():
 
 # Detect emotions in the song lyrics
 def detect_emotions(lyrics, emotion_model, tokenizer):
+    if not isinstance(lyrics, str):
+        return []  # Return empty if lyrics are not a valid string
     max_length = 512  # Max token length for the model
-    inputs = tokenizer(lyrics, return_tensors="pt", truncation=True, max_length=max_length)
-    
     try:
-        emotions = emotion_model(lyrics[:tokenizer.model_max_length])
+        emotions = emotion_model(lyrics[:max_length])  # Truncate to max length
     except Exception as e:
         st.write(f"Error in emotion detection: {e}")
         emotions = []
@@ -89,11 +88,12 @@ def recommend_songs(df, selected_song, selected_emotion=None, top_n=5):
     if selected_emotion:
         emotion_filtered_rows = []
         for idx, row in df.iterrows():
-            detected_emotions = detect_emotions(row['Lyrics'], emotion_model, tokenizer)
-            if detected_emotions:
-                detected_emotion = max(detected_emotions[0], key=lambda x: x['score'])['label']
-                if detected_emotion.lower() == selected_emotion.lower():
-                    emotion_filtered_rows.append(row)
+            if isinstance(row['Lyrics'], str):  # Check if lyrics are valid
+                detected_emotions = detect_emotions(row['Lyrics'], emotion_model, tokenizer)
+                if detected_emotions:
+                    detected_emotion = max(detected_emotions[0], key=lambda x: x['score'])['label']
+                    if detected_emotion.lower() == selected_emotion.lower():
+                        emotion_filtered_rows.append(row)
         emotion_filtered_df = pd.DataFrame(emotion_filtered_rows)
     else:
         emotion_filtered_df = df
@@ -200,7 +200,7 @@ def main():
                 st.write(f"### Search Results for: {search_term}")
                 for idx, row in filtered_songs.iterrows():
                     with st.container():
-                        st.markdown(f"<h2 style='font-weight: bold;'> {idx + 1}. {row['Song Title']}</h2>", unsafe_allow_html=True)
+                        st.markdown(f"<h2 style='font-weight: bold;'> {idx + 1}. {row['Song Title']}</hf"</h2>", unsafe_allow_html=True)
                         st.markdown(f"*Artist:* {row['Artist']}")
                         st.markdown(f"*Album:* {row['Album']}")
 
@@ -260,11 +260,12 @@ def main():
             emotion_model, tokenizer = load_emotion_model()
             
             for idx, row in df.iterrows():
-                detected_emotions = detect_emotions(row['Lyrics'], emotion_model, tokenizer)
-                if detected_emotions:
-                    detected_emotion = max(detected_emotions[0], key=lambda x: x['score'])['label']
-                    if detected_emotion.lower() == selected_emotion.lower():
-                        emotion_filtered_rows.append(row)
+                if isinstance(row['Lyrics'], str):  # Ensure lyrics are a valid string
+                    detected_emotions = detect_emotions(row['Lyrics'], emotion_model, tokenizer)
+                    if detected_emotions:
+                        detected_emotion = max(detected_emotions[0], key=lambda x: x['score'])['label']
+                        if detected_emotion.lower() == selected_emotion.lower():
+                            emotion_filtered_rows.append(row)
             
             emotion_filtered_df = pd.DataFrame(emotion_filtered_rows)
 
@@ -302,4 +303,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
