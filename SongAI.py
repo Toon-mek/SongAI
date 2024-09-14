@@ -22,17 +22,17 @@ def load_emotion_model():
     model = pipeline("text-classification", model=model_name, top_k=None)
     return model, tokenizer
 
-# Detect emotions in the song lyrics (do not cache due to model's unhashable nature)
-def detect_emotions(lyrics, emotion_model, tokenizer):
+# Detect emotions in the song lyrics
+def detect_emotions(lyrics, _emotion_model, _tokenizer):
     if not isinstance(lyrics, str):
         return []  # Return empty if lyrics are not a valid string
     max_length = 512  # Max token length for the model
     try:
-        emotions = emotion_model(lyrics[:max_length])  # Truncate to max length
+        emotions = _emotion_model(lyrics[:max_length])  # Truncate to max length
+        return emotions
     except Exception as e:
         st.write(f"Error in emotion detection: {e}")
-        emotions = []
-    return emotions
+        return []
 
 # Compute similarity between the input song lyrics and all other songs in the dataset
 @st.cache_data
@@ -204,7 +204,7 @@ def main():
                 st.write(f"### Search Results for: {search_term}")
                 for idx, row in filtered_songs.iterrows():
                     with st.container():
-                        st.markdown(f"<h2 style='font-weight: bold;'> {idx + 1}. {row['Song Title']}</h2>", unsafe_allow_html=True)
+                        st.markdown(f"<h2 style='font-weight: bold;'> {idx + 1}. {row['Song Title']}**</h2>", unsafe_allow_html=True)
                         st.markdown(f"*Artist:* {row['Artist']}")
                         st.markdown(f"*Album:* {row['Album']}")
 
@@ -268,6 +268,7 @@ def main():
                     detected_emotions = detect_emotions(row['Lyrics'], emotion_model, tokenizer)
                     if detected_emotions:
                         detected_emotion = max(detected_emotions[0], key=lambda x: x['score'])['label']
+                        st.write(f"Detected emotion for {row['Song Title']}: {detected_emotion}")  # Debugging output
                         if detected_emotion.lower() == selected_emotion.lower():
                             emotion_filtered_rows.append(row)
             
