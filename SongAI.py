@@ -36,7 +36,7 @@ def detect_emotions(lyrics, emotion_model, tokenizer):
 # Compute similarity between the input song lyrics and all other songs in the dataset
 @st.cache_data
 def compute_similarity(df, song_lyrics):
-    df['Lyrics'] = df['Lyrics'].fillna('').astype(str)
+    df['Lyrics'] = df['Lyrics'].fillna('').astype(str)  # Ensure all lyrics are strings
     vectorizer = TfidfVectorizer(stop_words='english')
     tfidf_matrix = vectorizer.fit_transform(df['Lyrics'])
     song_tfidf = vectorizer.transform([song_lyrics])
@@ -178,6 +178,9 @@ def main():
     # Convert the 'Release Date' column to datetime if possible
     df['Release Date'] = pd.to_datetime(df['Release Date'], errors='coerce')
 
+    # Ensure all lyrics are strings
+    df['Lyrics'] = df['Lyrics'].fillna('').astype(str)
+
     # Option selection between search or emotion
     search_or_emotion = st.radio("Choose an option:", ("Search for a Song or Artist 🎤", "Select an Emotion Category 🎭"))
 
@@ -231,18 +234,18 @@ def main():
                     st.write(f"### Recommended Songs Similar to {selected_song}")
                     
                     for idx, row in enumerate(recommendations.iterrows(), 1):
-                        st.markdown(f"<h2 style='font-weight: bold;'> {idx}. {row[1]['Song Title']}</h2>", unsafe_allow_html=True)
-                        st.markdown(f"*Artist:* {row[1]['Artist']}")
-                        st.markdown(f"*Album:* {row[1]['Album']}")
+                        st.markdown(f"<h2 style='font-weight: bold;'> {idx}. {row['Song Title']}</h2>", unsafe_allow_html=True)
+                        st.markdown(f"*Artist:* {row['Artist']}")
+                        st.markdown(f"*Album:* {row['Album']}")
 
-                        if pd.notna(row[1]['Release Date']):
-                            st.markdown(f"*Release Date:* {row[1]['Release Date'].strftime('%Y-%m-%d')}")
+                        if pd.notna(row['Release Date']):
+                            st.markdown(f"*Release Date:* {row['Release Date'].strftime('%Y-%m-%d')}")
                         else:
                             st.markdown(f"*Release Date:* Unknown")
 
-                        st.markdown(f"*Similarity Score:* {row[1]['similarity']:.2f}")
+                        st.markdown(f"*Similarity Score:* {row['similarity']:.2f}")
 
-                        youtube_url = extract_youtube_url(row[1].get('Media', ''))
+                        youtube_url = extract_youtube_url(row.get('Media', ''))
                         if youtube_url:
                             video_id = youtube_url.split('watch?v=')[-1]
                             st.markdown(f"<iframe width='400' height='315' src='https://www.youtube.com/embed/{video_id}' frameborder='0' allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share' referrerpolicy='strict-origin-when-cross-origin' allowfullscreen></iframe>", unsafe_allow_html=True)
