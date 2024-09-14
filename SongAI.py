@@ -14,7 +14,8 @@ def download_data_from_drive():
     gdown.download(url, output, quiet=True)
     return pd.read_csv(output)
 
-# Load emotion detection model and tokenizer
+# Load emotion detection model and tokenizer once
+@st.cache_resource
 def load_emotion_model():
     model_name = "j-hartmann/emotion-english-distilroberta-base"
     tokenizer = AutoTokenizer.from_pretrained(model_name)
@@ -22,6 +23,7 @@ def load_emotion_model():
     return model, tokenizer
 
 # Detect emotions in the song lyrics
+@st.cache_data
 def detect_emotions(lyrics, emotion_model, tokenizer):
     if not isinstance(lyrics, str):
         return []  # Return empty if lyrics are not a valid string
@@ -222,7 +224,6 @@ def main():
                             st.markdown(f"<iframe width='400' height='315' src='https://www.youtube.com/embed/{video_id}' frameborder='0' allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share' referrerpolicy='strict-origin-when-cross-origin' allowfullscreen></iframe>", unsafe_allow_html=True)
 
                         with st.expander("Show/Hide Lyrics"):
-                            # Safely handle missing or non-string lyrics
                             lyrics = str(row['Lyrics']).strip().replace('\n', '\n\n') if isinstance(row['Lyrics'], str) else "Lyrics not available."
                             st.markdown(f"<pre style='white-space: pre-wrap; font-family: monospace;'>{lyrics}</pre>", unsafe_allow_html=True)
                         st.markdown("---")
