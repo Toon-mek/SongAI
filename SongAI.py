@@ -22,8 +22,7 @@ def load_emotion_model():
     model = pipeline("text-classification", model=model_name, top_k=None)
     return model, tokenizer
 
-# Detect emotions in the song lyrics
-@st.cache_data
+# Detect emotions in the song lyrics (do not cache due to model's unhashable nature)
 def detect_emotions(lyrics, emotion_model, tokenizer):
     if not isinstance(lyrics, str):
         return []  # Return empty if lyrics are not a valid string
