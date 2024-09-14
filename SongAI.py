@@ -171,22 +171,9 @@ def main():
             song_list = filtered_songs['Song Title'].unique()
             selected_song = st.selectbox("Select a Song for Recommendations", song_list)
 
-                    # Filter by song title or artist name
-        filtered_songs = df[
-            (df['Song Title'].str.contains(search_term, case=False, na=False)) |
-            (df['Artist'].str.contains(search_term, case=False, na=False))
-        ]
-
-        filtered_songs = filtered_songs.sort_values(by='Release Date', ascending=False).reset_index(drop=True)
-
-        if filtered_songs.empty:
-            st.write("No songs found matching the search term.")
-        else:
-
             if st.button("Recommend Similar Songs"):
                 recommendations = recommend_songs(df, selected_song)
                 st.write(f"### Recommended Songs Similar to {selected_song}")
-                filtered_songs = filtered_songs.sort_values(by='Release Date', ascending=False).reset_index(drop=True)
                 for idx, row in recommendations.iterrows():
                     st.markdown(f"*No. {idx + 1}: {row['Song Title']}*")
                     st.markdown(f"*Artist:* {row['Artist']}")
