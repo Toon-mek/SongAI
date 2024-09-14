@@ -204,7 +204,7 @@ def main():
                 st.write(f"### Search Results for: {search_term}")
                 for idx, row in filtered_songs.iterrows():
                     with st.container():
-                        st.markdown(f"<h2 style='font-weight: bold;'> {idx + 1}. {row['Song Title']}</h2>", unsafe_allow_html=True)
+                        st.markdown(f"<h2 style='font-weight: bold;'> {{idx + 1}. {row['Song Title']}</h2>", unsafe_allow_html=True)
                         st.markdown(f"*Artist:* {row['Artist']}")
                         st.markdown(f"*Album:* {row['Album']}")
 
