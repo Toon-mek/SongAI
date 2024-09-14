@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import gdown
 import ast
-import random
 from transformers import pipeline, AutoTokenizer
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -25,10 +24,8 @@ def load_emotion_model():
 # Detect emotions in the song lyrics
 def detect_emotions(lyrics, emotion_model, tokenizer):
     max_length = 512  # Max token length for the model
-    inputs = tokenizer(lyrics, return_tensors="pt", truncation=True, max_length=max_length)
-    
     try:
-        emotions = emotion_model(lyrics[:tokenizer.model_max_length])
+        emotions = emotion_model(lyrics[:max_length])
     except Exception as e:
         st.write(f"Error in emotion detection: {e}")
         emotions = []
@@ -55,12 +52,12 @@ def extract_youtube_url(media_str):
         return None
 
 # Recommend similar songs based on lyrics and detected emotions
-def recommend_songs(df, selected_song, selected_emotion, top_n=5):
+def recommend_songs(df, selected_song, top_n=5):
     song_data = df[df['Song Title'] == selected_song]
     if song_data.empty:
         st.write("Song not found.")
         return []
-    
+
     song_lyrics = song_data['Lyrics'].values[0]
 
     # Load emotion detection model and tokenizer
@@ -69,49 +66,54 @@ def recommend_songs(df, selected_song, selected_emotion, top_n=5):
     # Detect emotions in the selected song
     emotions = detect_emotions(song_lyrics, emotion_model, tokenizer)
     st.write(f"### Detected Emotions in {selected_song}:")
-    
+
     if emotions and len(emotions) > 0:
         # Extract the emotions list from the first item
         emotion_list = emotions[0]
-        
+
         # Find the emotion with the highest score
         if isinstance(emotion_list, list) and len(emotion_list) > 0:
             top_emotion = max(emotion_list, key=lambda x: x['score'])
             emotion_sentence = f"The emotion of the song is **{top_emotion['label']}**."
         else:
             emotion_sentence = "No emotions detected."
-        
+
         st.write(emotion_sentence)
     else:
         st.write("No emotions detected.")
 
-    # Filter songs by the selected emotion
-    emotion_filtered_df = pd.DataFrame()  # Initialize empty DataFrame for filtering
-    for idx, row in df.iterrows():
-        detected_emotions = detect_emotions(row['Lyrics'], emotion_model, tokenizer)
-        if detected_emotions:
-            detected_emotion = max(detected_emotions[0], key=lambda x: x['score'])['label']
-            if detected_emotion.lower() == selected_emotion.lower():
-                emotion_filtered_df = emotion_filtered_df.append(row)
-
-    # Check if any songs match the selected emotion
-    if emotion_filtered_df.empty:
-        st.write(f"No songs found with the emotion: {selected_emotion}.")
-        return []
-
     # Compute lyrics similarity
-    similarity_scores = compute_similarity(emotion_filtered_df, song_lyrics)
+    similarity_scores = compute_similarity(df, song_lyrics)
 
     # Add similarity scores to the dataframe
-    emotion_filtered_df['similarity'] = similarity_scores
+    df['similarity'] = similarity_scores
 
     # Exclude the selected song from recommendations
-    emotion_filtered_df = emotion_filtered_df[emotion_filtered_df['Song Title'] != selected_song]
+    df = df[df['Song Title'] != selected_song]
 
     # Recommend top N similar songs
-    recommended_songs = emotion_filtered_df.sort_values(by='similarity', ascending=False).head(top_n)
-    
+    recommended_songs = df.sort_values(by='similarity', ascending=False).head(top_n)
+
     return recommended_songs[['Song Title', 'Artist', 'Album', 'Release Date', 'similarity', 'Song URL', 'Media']]
+
+def filter_songs_by_emotion(df, selected_emotion, top_n=5):
+    emotion_model, tokenizer = load_emotion_model()
+    emotion_filtered_rows = []
+
+    for idx, row in df.iterrows():
+        if isinstance(row['Lyrics'], str):
+            detected_emotions = detect_emotions(row['Lyrics'], emotion_model, tokenizer)
+            if detected_emotions:
+                detected_emotion = max(detected_emotions[0], key=lambda x: x['score'])['label']
+                if detected_emotion.lower() == selected_emotion.lower():
+                    emotion_filtered_rows.append(row)
+
+    emotion_filtered_df = pd.DataFrame(emotion_filtered_rows)
+
+    # Show only top N songs based on release date or another criteria if needed
+    emotion_filtered_df = emotion_filtered_df.sort_values(by='Release Date', ascending=False).head(top_n)
+
+    return emotion_filtered_df
 
 def display_random_songs(df, n=5):
     random_songs = df.sample(n=n)
@@ -177,10 +179,6 @@ def main():
     # Search bar for song name or artist
     search_term = st.text_input("Search for a Song or Artist 🎤").strip()
 
-    # Emotion selection dropdown
-    emotion_options = ['Happy', 'Sad', 'Anger', 'Fear']
-    selected_emotion = st.selectbox("Select an Emotion Category 🎭", emotion_options)
-
     if search_term:
         # Filter by song title or artist name
         filtered_songs = df[
@@ -212,7 +210,8 @@ def main():
                     youtube_url = extract_youtube_url(row.get('Media', ''))
                     if youtube_url:
                         video_id = youtube_url.split('watch?v=')[-1]
-                        st.markdown(f"<iframe width='400' height='315' src='https://www.youtube.com/embed/{video_id}' frameborder='0' allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share' referrerpolicy='strict-origin-when-cross-origin' allowfullscreen></iframe>", unsafe_allow_html=True)
+                        st.markdown(f"<iframe width='400' height='315' src='https://www.youtube.com/embed/{video_id}' frameborder='0' allow='accelerometer; autoplay; clipboard-write; encrypted-media; gy
+                        roscope; picture-in-picture; web-share' referrerpolicy='strict-origin-when-cross-origin' allowfullscreen></iframe>", unsafe_allow_html=True)
 
                     with st.expander("Show/Hide Lyrics"):
                         formatted_lyrics = row['Lyrics'].strip().replace('\n', '\n\n')
@@ -223,9 +222,9 @@ def main():
             selected_song = st.selectbox("Select a Song for Recommendations 🎧", song_list)
 
             if st.button("Recommend Similar Songs"):
-                recommendations = recommend_songs(df, selected_song, selected_emotion)
-                st.write(f"### Recommended Songs Similar to {selected_song} with Emotion: {selected_emotion}")
-                
+                recommendations = recommend_songs(df, selected_song)
+                st.write(f"### Recommended Songs Similar to {selected_song}")
+
                 for idx, row in enumerate(recommendations.iterrows(), 1):
                     st.markdown(f"<h2 style='font-weight: bold;'> {idx}. {row[1]['Song Title']}</h2>", unsafe_allow_html=True)
                     st.markdown(f"*Artist:* {row[1]['Artist']}")
@@ -244,9 +243,44 @@ def main():
                         st.markdown(f"<iframe width='400' height='315' src='https://www.youtube.com/embed/{video_id}' frameborder='0' allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share' referrerpolicy='strict-origin-when-cross-origin' allowfullscreen></iframe>", unsafe_allow_html=True)
 
                     st.markdown("---")
-    else:
-        # Display random songs if no search term is provided
-        display_random_songs(df)
+
+    # Emotion selection dropdown independent of search functionality
+    st.write("## Select Emotion Category to Display Related Songs")
+    emotion_options = ['Happy', 'Sad', 'Anger', 'Fear']
+    selected_emotion = st.selectbox("Select an Emotion Category 🎭", emotion_options)
+
+    if st.button("Show Songs for Selected Emotion"):
+        # Filter songs by selected emotion and display only top 5
+        emotion_filtered_df = filter_songs_by_emotion(df, selected_emotion, top_n=5)
+
+        if emotion_filtered_df.empty:
+            st.write(f"No songs found with the emotion: {selected_emotion}.")
+        else:
+            st.write(f"### Top 5 Songs with Emotion: {selected_emotion}")
+            for idx, row in emotion_filtered_df.iterrows():
+                with st.container():
+                    st.markdown(f"<h2 style='font-weight: bold;'> {idx + 1}. {row['Song Title']}</h2>", unsafe_allow_html=True)
+                    st.markdown(f"*Artist:* {row['Artist']}")
+                    st.markdown(f"*Album:* {row['Album']}")
+
+                    if pd.notna(row['Release Date']):
+                        st.markdown(f"*Release Date:* {row['Release Date'].strftime('%Y-%m-%d')}")
+                    else:
+                        st.markdown(f"*Release Date:* Unknown")
+
+                    song_url = row.get('Song URL', '')
+                    if pd.notna(song_url) and song_url:
+                        st.markdown(f"[View Lyrics on Genius]({song_url})")
+
+                    youtube_url = extract_youtube_url(row.get('Media', ''))
+                    if youtube_url:
+                        video_id = youtube_url.split('watch?v=')[-1]
+                        st.markdown(f"<iframe width='400' height='315' src='https://www.youtube.com/embed/{video_id}' frameborder='0' allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share' referrerpolicy='strict-origin-when-cross-origin' allowfullscreen></iframe>", unsafe_allow_html=True)
+
+                    with st.expander("Show/Hide Lyrics"):
+                        lyrics = str(row['Lyrics']).strip().replace('\n', '\n\n') if isinstance(row['Lyrics'], str) else "Lyrics not available."
+                        st.markdown(f"<pre style='white-space: pre-wrap; font-family: monospace;'>{lyrics}</pre>", unsafe_allow_html=True)
+                    st.markdown("---")
 
 if __name__ == '__main__':
     main()
