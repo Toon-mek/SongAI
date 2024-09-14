@@ -87,13 +87,14 @@ def recommend_songs(df, selected_song, selected_emotion=None, top_n=5):
 
     # Filter songs by the selected emotion if specified
     if selected_emotion:
-        emotion_filtered_df = pd.DataFrame()
+        emotion_filtered_rows = []
         for idx, row in df.iterrows():
             detected_emotions = detect_emotions(row['Lyrics'], emotion_model, tokenizer)
             if detected_emotions:
                 detected_emotion = max(detected_emotions[0], key=lambda x: x['score'])['label']
                 if detected_emotion.lower() == selected_emotion.lower():
-                    emotion_filtered_df = emotion_filtered_df.append(row)
+                    emotion_filtered_rows.append(row)
+        emotion_filtered_df = pd.DataFrame(emotion_filtered_rows)
     else:
         emotion_filtered_df = df
 
@@ -254,8 +255,8 @@ def main():
         selected_emotion = st.selectbox("Select an Emotion", emotion_options)
 
         if st.button("Show Songs for Selected Emotion"):
-            # Filter songs by selected emotion and display
-            emotion_filtered_df = pd.DataFrame()
+            # Filter songs by selected emotion and display only top 5
+            emotion_filtered_rows = []
             emotion_model, tokenizer = load_emotion_model()
             
             for idx, row in df.iterrows():
@@ -263,12 +264,17 @@ def main():
                 if detected_emotions:
                     detected_emotion = max(detected_emotions[0], key=lambda x: x['score'])['label']
                     if detected_emotion.lower() == selected_emotion.lower():
-                        emotion_filtered_df = emotion_filtered_df.append(row)
+                        emotion_filtered_rows.append(row)
+            
+            emotion_filtered_df = pd.DataFrame(emotion_filtered_rows)
+
+            # Show only top 5 songs based on release date or another criteria if needed
+            emotion_filtered_df = emotion_filtered_df.sort_values(by='Release Date', ascending=False).head(5)
 
             if emotion_filtered_df.empty:
                 st.write(f"No songs found with the emotion: {selected_emotion}.")
             else:
-                st.write(f"### Songs with Emotion: {selected_emotion}")
+                st.write(f"### Top 5 Songs with Emotion: {selected_emotion}")
                 for idx, row in emotion_filtered_df.iterrows():
                     with st.container():
                         st.markdown(f"<h2 style='font-weight: bold;'> {idx + 1}. {row['Song Title']}</h2>", unsafe_allow_html=True)
