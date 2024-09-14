@@ -222,8 +222,9 @@ def main():
                             st.markdown(f"<iframe width='400' height='315' src='https://www.youtube.com/embed/{video_id}' frameborder='0' allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share' referrerpolicy='strict-origin-when-cross-origin' allowfullscreen></iframe>", unsafe_allow_html=True)
 
                         with st.expander("Show/Hide Lyrics"):
-                            formatted_lyrics = row['Lyrics'].strip().replace('\n', '\n\n')
-                            st.markdown(f"<pre style='white-space: pre-wrap; font-family: monospace;'>{formatted_lyrics}</pre>", unsafe_allow_html=True)
+                            # Safely handle missing or non-string lyrics
+                            lyrics = str(row['Lyrics']).strip().replace('\n', '\n\n') if isinstance(row['Lyrics'], str) else "Lyrics not available."
+                            st.markdown(f"<pre style='white-space: pre-wrap; font-family: monospace;'>{lyrics}</pre>", unsafe_allow_html=True)
                         st.markdown("---")
 
                 song_list = filtered_songs['Song Title'].unique()
@@ -234,18 +235,18 @@ def main():
                     st.write(f"### Recommended Songs Similar to {selected_song}")
                     
                     for idx, row in enumerate(recommendations.iterrows(), 1):
-                        st.markdown(f"<h2 style='font-weight: bold;'> {idx}. {row['Song Title']}</h2>", unsafe_allow_html=True)
-                        st.markdown(f"*Artist:* {row['Artist']}")
-                        st.markdown(f"*Album:* {row['Album']}")
+                        st.markdown(f"<h2 style='font-weight: bold;'> {idx}. {row[1]['Song Title']}</h2>", unsafe_allow_html=True)
+                        st.markdown(f"*Artist:* {row[1]['Artist']}")
+                        st.markdown(f"*Album:* {row[1]['Album']}")
 
-                        if pd.notna(row['Release Date']):
-                            st.markdown(f"*Release Date:* {row['Release Date'].strftime('%Y-%m-%d')}")
+                        if pd.notna(row[1]['Release Date']):
+                            st.markdown(f"*Release Date:* {row[1]['Release Date'].strftime('%Y-%m-%d')}")
                         else:
                             st.markdown(f"*Release Date:* Unknown")
 
-                        st.markdown(f"*Similarity Score:* {row['similarity']:.2f}")
+                        st.markdown(f"*Similarity Score:* {row[1]['similarity']:.2f}")
 
-                        youtube_url = extract_youtube_url(row.get('Media', ''))
+                        youtube_url = extract_youtube_url(row[1].get('Media', ''))
                         if youtube_url:
                             video_id = youtube_url.split('watch?v=')[-1]
                             st.markdown(f"<iframe width='400' height='315' src='https://www.youtube.com/embed/{video_id}' frameborder='0' allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share' referrerpolicy='strict-origin-when-cross-origin' allowfullscreen></iframe>", unsafe_allow_html=True)
@@ -300,8 +301,8 @@ def main():
                             st.markdown(f"<iframe width='400' height='315' src='https://www.youtube.com/embed/{video_id}' frameborder='0' allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share' referrerpolicy='strict-origin-when-cross-origin' allowfullscreen></iframe>", unsafe_allow_html=True)
 
                         with st.expander("Show/Hide Lyrics"):
-                            formatted_lyrics = row['Lyrics'].strip().replace('\n', '\n\n')
-                            st.markdown(f"<pre style='white-space: pre-wrap; font-family: monospace;'>{formatted_lyrics}</pre>", unsafe_allow_html=True)
+                            lyrics = str(row['Lyrics']).strip().replace('\n', '\n\n') if isinstance(row['Lyrics'], str) else "Lyrics not available."
+                            st.markdown(f"<pre style='white-space: pre-wrap; font-family: monospace;'>{lyrics}</pre>", unsafe_allow_html=True)
                         st.markdown("---")
 
 if __name__ == '__main__':
