@@ -76,7 +76,7 @@ def recommend_songs(df, selected_song, top_n=5):
         # Find the emotion with the highest score
         if isinstance(emotion_list, list) and len(emotion_list) > 0:
             top_emotion = max(emotion_list, key=lambda x: x['score'])
-            emotion_sentence = f"The emotion of the song is **{top_emotion['label']}**."
+            emotion_sentence = f"The emotion of the song is *{top_emotion['label']}*."
         else:
             emotion_sentence = "No emotions detected."
         
@@ -143,14 +143,14 @@ def main():
             for idx, row in filtered_songs.iterrows():
                 with st.container():
                     st.markdown(f"<h2 style='font-weight: bold;'> {idx + 1}. {row['Song Title']}</h2>", unsafe_allow_html=True)
-                    st.markdown(f"**Artist:** {row['Artist']}")
-                    st.markdown(f"**Album:** {row['Album']}")
+                    st.markdown(f"*Artist:* {row['Artist']}")
+                    st.markdown(f"*Album:* {row['Album']}")
                     
                     # Check if 'Release Date' is a datetime object before formatting
                     if pd.notna(row['Release Date']):
-                        st.markdown(f"**Release Date:** {row['Release Date'].strftime('%Y-%m-%d')}")
+                        st.markdown(f"*Release Date:* {row['Release Date'].strftime('%Y-%m-%d')}")
                     else:
-                        st.markdown(f"**Release Date:** Unknown")
+                        st.markdown(f"*Release Date:* Unknown")
                     
                     # Display link to Genius.com page if URL is available
                     song_url = row.get('Song URL', '')
@@ -175,17 +175,17 @@ def main():
                 recommendations = recommend_songs(df, selected_song)
                 st.write(f"### Recommended Songs Similar to {selected_song}")
                 for idx, row in recommendations.iterrows():
-                    st.markdown(f"**No. {idx + 1}: {row['Song Title']}**")
-                    st.markdown(f"**Artist:** {row['Artist']}")
-                    st.markdown(f"**Album:** {row['Album']}")
+                    st.markdown(f"*No. {idx + 1}: {row['Song Title']}*")
+                    st.markdown(f"*Artist:* {row['Artist']}")
+                    st.markdown(f"*Album:* {row['Album']}")
                     
                     # Check if 'Release Date' is a datetime object before formatting
                     if pd.notna(row['Release Date']):
-                        st.markdown(f"**Release Date:** {row['Release Date'].strftime('%Y-%m-%d')}")
+                        st.markdown(f"*Release Date:* {row['Release Date'].strftime('%Y-%m-%d')}")
                     else:
-                        st.markdown(f"**Release Date:** Unknown")
+                        st.markdown(f"*Release Date:* Unknown")
                     
-                    st.markdown(f"**Similarity Score:** {row['similarity']:.2f}")
+                    st.markdown(f"*Similarity Score:* {row['similarity']:.2f}")
                     
                     # Extract and display YouTube video if URL is available
                     youtube_url = extract_youtube_url(row.get('Media', ''))
