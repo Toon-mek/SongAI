@@ -206,7 +206,7 @@ def main():
                     with st.container():
                         st.markdown(f"<h2 style='font-weight: bold;'> {idx + 1}. {row['Song Title']}</h2>", unsafe_allow_html=True)
                         st.markdown(f"*Artist:* {row['Artist']}")
-                        st.markdown(f"*Album:* {row['Album}")
+                        st.markdown(f"*Album:* {row['Album']}")
 
                         if pd.notna(row['Release Date']):
                             st.markdown(f"*Release Date:* {row['Release Date'].strftime('%Y-%m-%d')}")
