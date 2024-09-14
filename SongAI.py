@@ -175,7 +175,7 @@ def main():
                 recommendations = recommend_songs(df, selected_song)
                 st.write(f"### Recommended Songs Similar to {selected_song}")
                 for idx, row in recommendations.iterrows():
-                    st.markdown(f"*No. {idx + 1}: {row['Song Title']}*")
+                    st.markdown(f"<h2 style='font-weight: bold;'> {idx + 1}. {row['Song Title']}</h2>", unsafe_allow_html=True)
                     st.markdown(f"*Artist:* {row['Artist']}")
                     st.markdown(f"*Album:* {row['Album']}")
                     
