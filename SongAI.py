@@ -204,9 +204,9 @@ def main():
                 st.write(f"### Search Results for: {search_term}")
                 for idx, row in filtered_songs.iterrows():
                     with st.container():
-                        st.markdown(f"<h2 style='font-weight: bold;'> {idx + 1}. {row['Song Title']}**</h2>", unsafe_allow_html=True)
+                        st.markdown(f"<h2 style='font-weight: bold;'> {idx + 1}. {row['Song Title']}</h2>", unsafe_allow_html=True)
                         st.markdown(f"*Artist:* {row['Artist']}")
-                        st.markdown(f"*Album:* {row['Album']}")
+                        st.markdown(f"*Album:* {row['Album}")
 
                         if pd.notna(row['Release Date']):
                             st.markdown(f"*Release Date:* {row['Release Date'].strftime('%Y-%m-%d')}")
@@ -267,8 +267,8 @@ def main():
                 if isinstance(row['Lyrics'], str):  # Ensure lyrics are a valid string
                     detected_emotions = detect_emotions(row['Lyrics'], emotion_model, tokenizer)
                     if detected_emotions:
+                        # Find the emotion with the highest score
                         detected_emotion = max(detected_emotions[0], key=lambda x: x['score'])['label']
-                        st.write(f"Detected emotion for {row['Song Title']}: {detected_emotion}")  # Debugging output
                         if detected_emotion.lower() == selected_emotion.lower():
                             emotion_filtered_rows.append(row)
             
