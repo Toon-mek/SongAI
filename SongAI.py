@@ -209,7 +209,7 @@ def main():
                             st.markdown(f"*Release Date:* Unknown")
 
                         song_url = row.get('Song URL', '')
-                                                if pd.notna(song_url) and song_url:
+                        if pd.notna(song_url) and song_url:
                             st.markdown(f"[View Lyrics on Genius]({song_url})")
 
                         youtube_url = extract_youtube_url(row.get('Media', ''))
